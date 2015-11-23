@@ -96,7 +96,10 @@ m_pred <- predict(modelRf$finalModel, newdata=m_test)
 a <- cbind(m_test$classe, as.character(m_pred))
 m_pred_tf <- ifelse(m_test$classe == as.character(m_pred), 1, 0)
 
-table(m_pred_tf)[2]/sum(table(m_pred_tf))
+accuracy <- table(m_pred_tf)[2]/sum(table(m_pred_tf))
+accuracy
+
+(1-accuracy)
 ```
 
 99.3 %is acceptable.

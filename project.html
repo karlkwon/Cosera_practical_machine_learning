@@ -161,8 +161,8 @@ modelLda</code></pre>
 ## Summary of sample sizes: 11260, 11260, 11260, 11260, 11260, 11260, ... 
 ## Resampling results
 ## 
-##   Accuracy   Kappa      Accuracy SD  Kappa SD   
-##   0.6882074  0.6102477  0.006949792  0.008710571
+##   Accuracy   Kappa      Accuracy SD  Kappa SD  
+##   0.6915582  0.6144516  0.006833127  0.00852561
 ## 
 ## </code></pre>
 <p>But, the result of learning is poor. (69.1%)</p>
@@ -184,18 +184,22 @@ modelLda</code></pre>
 ##         OOB estimate of  error rate: 0.78%
 ## Confusion matrix:
 ##      A    B    C    D    E class.error
-## A 2242    7    0    2    1 0.004440497
-## B   12 2230   10    0    0 0.009769094
-## C    0    7 2238    7    0 0.006216696
+## A 2244    5    1    2    0 0.003552398
+## B   15 2231    5    0    1 0.009325044
+## C    0   12 2228   12    0 0.010657194
 ## D    0    0   23 2227    2 0.011101243
-## E    0    3    5    9 2235 0.007548845</code></pre>
+## E    0    0    2    8 2242 0.004440497</code></pre>
 <pre class="r"><code>m_pred &lt;- predict(modelRf$finalModel, newdata=m_test)
 a &lt;- cbind(m_test$classe, as.character(m_pred))
 m_pred_tf &lt;- ifelse(m_test$classe == as.character(m_pred), 1, 0)
 
-table(m_pred_tf)[2]/sum(table(m_pred_tf))</code></pre>
+accuracy &lt;- table(m_pred_tf)[2]/sum(table(m_pred_tf))
+accuracy</code></pre>
 <pre><code>##         1 
-## 0.9931535</code></pre>
+## 0.9919087</code></pre>
+<pre class="r"><code>(1-accuracy)</code></pre>
+<pre><code>##           1 
+## 0.008091286</code></pre>
 <p>99.3 %is acceptable. So, I choose this model for this project.</p>
 </div>
 </div>
