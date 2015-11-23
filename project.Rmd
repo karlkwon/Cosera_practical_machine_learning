@@ -9,14 +9,95 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r}
-summary(cars)
-```
-
-You can also embed plots, for example:
-
+# Load related library
 ```{r, echo=FALSE}
-plot(cars)
+library(caret)
+library(list)
+library(MASS)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+# Load data
+Set invalid data to 'NA'.
+```{r}
+training <- read.csv("pml-training.csv", stringsAsFactors=FALSE, na.strings = c("NA", ""))
+```
+
+# Evaluate input variables.
+Set invalid data to 'NA'.
+```{r}
+training_tf <- ifelse(is.na(training), 1, 0)
+training_tf_cml <- colSums(training_tf)
+training_tf_cml_nor <- training_tf_cml / dim(training_tf)[1]
+
+hist(training_tf_cml_nor)
+```
+
+I select variables, which has more than 90% of data is valid.
+```{r}
+validColumns <- training_tf_cml_nor < 0.1
+training2 <- training[, validColumns]
+```
+
+Remove meaningless variable, too.
+```{r}
+training3 <- training2[,8:60]
+dim(training3)
+```
+
+# Make balanced data
+```{r}
+type_list <- unique(training3$classe)
+table(training3$classe)
+min_sample <- min(table(training3$classe))
+
+training4 <- NULL
+for(str in type_list) {
+  ttt <- training3[training3$classe==str,]
+
+  tmp <- sample(c(1:(dim(ttt)[1])), min_sample, replace=FALSE)
+  tmp2 <- ttt[tmp,]
+
+  if(is.null(training4)) {
+    training4 <- tmp2
+  }else {
+    training4 <- rbind(training4, tmp2)
+  }
+}
+
+table(training4$classe)
+```
+
+# Prepare training data
+```{r}
+inTrain <- createDataPartition(y=training4$classe, p=0.7, list=FALSE)
+m_train <- training4[inTrain,]
+m_test  <- training4[-inTrain,]
+
+table(m_train$classe)
+table(m_test$classe)
+```
+
+## Training with lda
+First try with simple classifier.
+```{r}
+modelLda <- train(classe ~., data=m_train, method="lda")
+modelLda
+```
+
+But, the result of learning is poor. (69.1%)
+
+
+## Training with rf
+```{r}
+modelRf <- train(classe ~., data=m_train, method="rf")
+modelRf$finalModel
+
+m_pred <- predict(modelRf$finalModel, newdata=m_test)
+a <- cbind(m_test$classe, as.character(m_pred))
+m_pred_tf <- ifelse(m_test$classe == as.character(m_pred), 1, 0)
+
+table(m_pred_tf)[2]/sum(table(m_pred_tf))
+```
+
+99.3 %is acceptable.
+So, I choose this model for this project.
